@@ -70,7 +70,7 @@ code {
 .app-shell {
   min-height: 100vh;
   display: grid;
-  grid-template-columns: 290px minmax(0, 1fr);
+  grid-template-columns: 310px minmax(0, 1fr);
 }
 
 .sidebar {
@@ -90,9 +90,9 @@ code {
 }
 
 .brand-badge {
-  width: 2.4rem;
-  height: 2.4rem;
-  border-radius: 0.8rem;
+  width: 2.55rem;
+  height: 2.55rem;
+  border-radius: 0.85rem;
   display: grid;
   place-items: center;
   background: linear-gradient(135deg, #60a5fa, #2563eb);
@@ -148,7 +148,7 @@ code {
   border-radius: 0.95rem;
   padding: 1rem;
   display: grid;
-  gap: 0.5rem;
+  gap: 0.7rem;
 }
 
 .sidebar-card-title {
@@ -163,6 +163,47 @@ code {
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.08);
   font-size: 0.85rem;
+}
+
+.sidebar-field {
+  display: grid;
+  gap: 0.35rem;
+  color: #d8e3fb;
+  font-size: 0.88rem;
+}
+
+.sidebar-select {
+  width: 100%;
+  border-radius: 0.8rem;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.08);
+  color: #f5f9ff;
+  padding: 0.7rem 0.8rem;
+}
+
+.sidebar-select option {
+  color: #172033;
+}
+
+.sidebar-metadata-grid {
+  display: grid;
+  gap: 0.55rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.sidebar-metadata-grid span {
+  display: block;
+  color: #9fb2d7;
+  font-size: 0.78rem;
+  margin-bottom: 0.2rem;
+}
+
+.sidebar-metadata-grid strong {
+  font-size: 0.9rem;
+}
+
+.small-text {
+  font-size: 0.82rem;
 }
 
 .workspace {
@@ -276,6 +317,10 @@ code {
   flex-wrap: wrap;
 }
 
+.align-start {
+  align-items: flex-start;
+}
+
 .primary-button,
 .secondary-button {
   border: none;
@@ -303,6 +348,11 @@ code {
   background: #f5f8fd;
 }
 
+.secondary-button:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
 .section-kicker {
   color: #3357aa;
   text-transform: uppercase;
@@ -315,6 +365,10 @@ code {
   display: grid;
   gap: 1rem;
   grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.card-grid-5 {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
 }
 
 .card-label {
@@ -340,6 +394,10 @@ code {
   gap: 0.8rem;
   align-items: center;
   margin-bottom: 0.75rem;
+}
+
+.compact-card-header {
+  margin-bottom: 0.5rem;
 }
 
 .stack-list {
@@ -376,10 +434,26 @@ code {
   color: #5f708c;
 }
 
+.compact-detail-list {
+  gap: 0.6rem;
+}
+
+.two-column-detail-list {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.spaced-detail-list {
+  margin-top: 1rem;
+}
+
 .form-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.9rem;
+}
+
+.compact-form-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .form-grid label,
@@ -410,9 +484,14 @@ textarea:focus {
   border-color: #78a6f8;
 }
 
-.toggle-stack {
+.toggle-stack,
+.toggle-grid {
   display: grid;
   gap: 0.7rem;
+}
+
+.toggle-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .toggle-row {
@@ -439,8 +518,83 @@ textarea:focus {
   font-size: 0.92rem;
 }
 
+.directory-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.workspace-directory-card {
+  border: 1px solid #d8e2f2;
+  border-radius: 1rem;
+  padding: 1rem;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+  display: grid;
+  gap: 0.9rem;
+}
+
+.workspace-directory-card.active {
+  border-color: #8db4ff;
+  box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.1);
+}
+
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.compact-tags {
+  margin-top: 0.25rem;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.28rem 0.58rem;
+  border-radius: 999px;
+  background: #edf3ff;
+  border: 1px solid #d6e2ff;
+  color: #34508c;
+  font-size: 0.8rem;
+}
+
+.sequence-list {
+  display: grid;
+  gap: 0.95rem;
+}
+
+.sequence-row {
+  border: 1px solid #deebf9;
+  border-radius: 1rem;
+  padding: 0.95rem;
+  background: #fbfdff;
+}
+
+.sequence-row-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.8rem;
+  align-items: flex-start;
+  margin-bottom: 0.8rem;
+}
+
+.spacing-top {
+  margin-top: 1.2rem;
+}
+
+@media (max-width: 1280px) {
+  .card-grid-5 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .compact-form-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 1120px) {
   .card-grid,
+  .card-grid-5,
   .split-grid {
     grid-template-columns: 1fr 1fr;
   }
@@ -464,7 +618,12 @@ textarea:focus {
   .hero-card,
   .split-grid,
   .card-grid,
-  .form-grid {
+  .card-grid-5,
+  .form-grid,
+  .compact-form-grid,
+  .toggle-grid,
+  .two-column-detail-list,
+  .sidebar-metadata-grid {
     grid-template-columns: 1fr;
     display: grid;
   }

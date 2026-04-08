@@ -11,17 +11,20 @@ import {
 import {
   bootstrapApp,
   createBackupSnapshot,
+  createBusinessWorkspace,
   exportFoundationSnapshot,
   previewImportBundle,
   saveBusinessProfile,
-  saveBusinessSettings
+  saveWorkspaceConfiguration,
+  switchActiveBusiness
 } from "../shared/api";
 import type {
   AppBootstrap,
   BackupRecord,
   BusinessProfile,
-  BusinessSettings,
-  ImportPreview
+  ImportPreview,
+  NewBusinessWorkspaceInput,
+  WorkspaceConfigurationInput
 } from "../shared/types";
 
 type AppStatus = "loading" | "ready" | "error";
@@ -32,7 +35,9 @@ interface AppContextValue {
   data: AppBootstrap | null;
   refresh: () => Promise<void>;
   saveProfile: (profile: BusinessProfile) => Promise<BusinessProfile>;
-  saveSettings: (settings: BusinessSettings) => Promise<BusinessSettings>;
+  createBusiness: (input: NewBusinessWorkspaceInput) => Promise<BusinessProfile>;
+  switchBusiness: (businessId: string) => Promise<BusinessProfile>;
+  saveWorkspace: (input: WorkspaceConfigurationInput) => Promise<void>;
   createBackup: () => Promise<BackupRecord>;
   exportFoundation: () => Promise<string>;
   previewImport: (filePath: string) => Promise<ImportPreview>;
@@ -83,11 +88,28 @@ export function AppProvider({ children }: PropsWithChildren) {
     [refresh]
   );
 
-  const saveSettingsAction = useCallback(
-    async (settings: BusinessSettings) => {
-      const saved = await saveBusinessSettings(settings);
+  const createBusiness = useCallback(
+    async (input: NewBusinessWorkspaceInput) => {
+      const created = await createBusinessWorkspace(input);
       await refresh();
-      return saved;
+      return created;
+    },
+    [refresh]
+  );
+
+  const switchBusiness = useCallback(
+    async (businessId: string) => {
+      const result = await switchActiveBusiness(businessId);
+      await refresh();
+      return result;
+    },
+    [refresh]
+  );
+
+  const saveWorkspace = useCallback(
+    async (input: WorkspaceConfigurationInput) => {
+      await saveWorkspaceConfiguration(input);
+      await refresh();
     },
     [refresh]
   );
@@ -115,7 +137,9 @@ export function AppProvider({ children }: PropsWithChildren) {
       data,
       refresh,
       saveProfile,
-      saveSettings: saveSettingsAction,
+      createBusiness,
+      switchBusiness,
+      saveWorkspace,
       createBackup: createBackupAction,
       exportFoundation: exportFoundationAction,
       previewImport: previewImportAction
@@ -126,7 +150,9 @@ export function AppProvider({ children }: PropsWithChildren) {
       data,
       refresh,
       saveProfile,
-      saveSettingsAction,
+      createBusiness,
+      switchBusiness,
+      saveWorkspace,
       createBackupAction,
       exportFoundationAction,
       previewImportAction
@@ -152,7 +178,10 @@ export function AppStateView({ children }: PropsWithChildren) {
       <div className="app-loading-shell">
         <div className="spinner" />
         <h1>Preparing local workspace…</h1>
-        <p>Initializing database, patch registry, and demo business profile.</p>
+        <p>
+          Initializing migrations, business workspaces, settings profiles, and
+          the local patch registry.
+        </p>
       </div>
     );
   }

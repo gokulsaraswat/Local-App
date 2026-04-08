@@ -31,7 +31,7 @@ pub fn create_backup_snapshot(app: AppHandle) -> CommandResult<BackupRecord> {
     })?;
 
     let timestamp = Utc::now().format("%Y%m%d_%H%M%S").to_string();
-    let file_name = format!("foundation_snapshot_{timestamp}.sqlite");
+    let file_name = format!("workspace_snapshot_{timestamp}.sqlite");
     let backup_dir = business_settings
         .backup_directory
         .clone()
@@ -66,24 +66,37 @@ pub fn create_backup_snapshot(app: AppHandle) -> CommandResult<BackupRecord> {
 pub fn export_foundation_snapshot(app: AppHandle) -> CommandResult<String> {
     let paths = resolve_paths(&app)?;
 
-    let (app_info, active_business, business_settings, businesses, patch_history, backups) =
-        db::with_connection(&app, |conn, _paths| {
-            let active_business = db::get_active_business(conn)?;
-            let business_settings = db::get_business_settings(conn, &active_business.id)?;
+    let (
+        app_info,
+        active_business,
+        businesses,
+        business_settings,
+        tax_profiles,
+        receipt_profiles,
+        module_flags,
+        sequence_counters,
+        patch_history,
+        backups,
+    ) = db::with_connection(&app, |conn, _paths| {
+        let active_business = db::get_active_business(conn)?;
 
-            Ok((
-                db::load_app_info(conn)?,
-                active_business,
-                business_settings,
-                db::list_businesses(conn)?,
-                db::list_patch_history(conn)?,
-                db::list_backups(conn)?,
-            ))
-        })?;
+        Ok((
+            db::load_app_info(conn)?,
+            active_business,
+            db::list_businesses(conn)?,
+            db::list_all_business_settings(conn)?,
+            db::list_all_tax_profiles(conn)?,
+            db::list_all_receipt_profiles(conn)?,
+            db::list_all_module_flags(conn)?,
+            db::list_all_sequence_counters(conn)?,
+            db::list_patch_history(conn)?,
+            db::list_backups(conn)?,
+        ))
+    })?;
 
     let generated_at = db::now_iso();
     let timestamp = Utc::now().format("%Y%m%d_%H%M%S").to_string();
-    let export_path = PathBuf::from(&paths.export_dir).join(format!("foundation_export_{timestamp}.json"));
+    let export_path = PathBuf::from(&paths.export_dir).join(format!("workspace_export_{timestamp}.json"));
 
     let source_patch_level = app_info.patch_level.clone();
     let product_name = app_info.product_name.clone();
@@ -91,8 +104,8 @@ pub fn export_foundation_snapshot(app: AppHandle) -> CommandResult<String> {
 
     let bundle = json!({
         "manifest": {
-            "bundleVersion": "1.0.0",
-            "bundleType": "foundation-export",
+            "bundleVersion": "2.0.0",
+            "bundleType": "workspace-foundation-export",
             "sourcePatchLevel": source_patch_level,
             "schemaVersion": app_info.schema_version,
             "generatedAt": generated_at.clone(),
@@ -102,6 +115,10 @@ pub fn export_foundation_snapshot(app: AppHandle) -> CommandResult<String> {
         "activeBusinessId": active_business_id.clone(),
         "businesses": businesses,
         "businessSettings": business_settings,
+        "taxProfiles": tax_profiles,
+        "receiptProfiles": receipt_profiles,
+        "moduleFlags": module_flags,
+        "sequenceCounters": sequence_counters,
         "patchHistory": patch_history,
         "backupRecords": backups
     });
@@ -116,7 +133,7 @@ pub fn export_foundation_snapshot(app: AppHandle) -> CommandResult<String> {
     let export_job = ExportJobRecord {
         id: Uuid::new_v4().to_string(),
         business_id: Some(active_business_id),
-        format: "json-foundation".into(),
+        format: "json-workspace-foundation".into(),
         status: "completed".into(),
         target_path: Some(export_path.to_string_lossy().to_string()),
         created_at: generated_at.clone(),
@@ -125,7 +142,7 @@ pub fn export_foundation_snapshot(app: AppHandle) -> CommandResult<String> {
 
     db::with_connection(&app, |conn, _paths| {
         db::insert_export_job(conn, &export_job)?;
-        db::insert_log(conn, "INFO", "export", "Foundation export bundle created", None)?;
+        db::insert_log(conn, "INFO", "export", "Workspace export bundle created", None)?;
         Ok(())
     })?;
 
@@ -158,6 +175,10 @@ pub fn preview_import_bundle(app: AppHandle, file_path: String) -> CommandResult
         warnings.push("Bundle is missing manifest.bundleVersion".into());
     }
 
+    if parsed.get("businessSettings").is_none() {
+        warnings.push("Bundle is missing businessSettings".into());
+    }
+
     let preview = ImportPreview {
         file_path: file_path.clone(),
         valid: warnings.is_empty(),
@@ -182,7 +203,7 @@ pub fn preview_import_bundle(app: AppHandle, file_path: String) -> CommandResult
     };
 
     db::with_connection(&app, |conn, _paths| {
-        db::insert_import_job(conn, None, "json-foundation", "previewed", &file_path)?;
+        db::insert_import_job(conn, None, "json-workspace-foundation", "previewed", &file_path)?;
         db::insert_log(conn, "INFO", "import", "Import bundle previewed", None)?;
         Ok(())
     })?;

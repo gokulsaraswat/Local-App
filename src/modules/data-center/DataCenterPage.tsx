@@ -6,7 +6,7 @@ export function DataCenterPage() {
   const { data, createBackup, exportFoundation, previewImport } = useAppState();
   const [statusMessage, setStatusMessage] = useState("");
   const [importPath, setImportPath] = useState("");
-  const [previewResult, setPreviewResult] = useState<string>("");
+  const [previewResult, setPreviewResult] = useState("");
 
   const latestBackup = useMemo(() => {
     return data?.backups[0] ?? null;
@@ -15,7 +15,7 @@ export function DataCenterPage() {
   if (!data) return null;
 
   async function handleBackup() {
-    setStatusMessage("Creating backup snapshot…");
+    setStatusMessage("Creating workspace backup snapshot…");
     try {
       const result = await createBackup();
       setStatusMessage(`Backup created: ${result.fileName}`);
@@ -27,7 +27,7 @@ export function DataCenterPage() {
   }
 
   async function handleExport() {
-    setStatusMessage("Exporting foundation snapshot…");
+    setStatusMessage("Exporting workspace foundation snapshot…");
     try {
       const targetPath = await exportFoundation();
       setStatusMessage(`Export written to: ${targetPath}`);
@@ -50,7 +50,7 @@ export function DataCenterPage() {
       }
 
       setPreviewResult(
-        `Bundle OK · type=${preview.bundleType ?? "unknown"} · generated=${preview.generatedAt ?? "unknown"} · businesses=${preview.businessCount}`
+        `Bundle OK · type=${preview.bundleType ?? "unknown"} · source=${preview.sourcePatchLevel ?? "unknown"} · generated=${preview.generatedAt ?? "unknown"} · businesses=${preview.businessCount}`
       );
     } catch (error) {
       setPreviewResult(
@@ -68,8 +68,9 @@ export function DataCenterPage() {
             <span className="pill success">Local only</span>
           </div>
           <p className="card-note">
-            Patch 1 establishes the storage directories, backup snapshot copy,
-            export JSON package, and import preview validation surface.
+            Patch 2 upgrades export scope from a single active business snapshot to
+            a multi-business workspace foundation export. Backups still stay fully
+            local and file-based.
           </p>
 
           <div className="inline-actions">
@@ -77,7 +78,7 @@ export function DataCenterPage() {
               Create Backup Snapshot
             </button>
             <button className="secondary-button" type="button" onClick={() => void handleExport()}>
-              Export Foundation Snapshot
+              Export Workspace Snapshot
             </button>
           </div>
 
@@ -95,6 +96,10 @@ export function DataCenterPage() {
             <div>
               <span>Export directory</span>
               <code>{data.storage.exportDir}</code>
+            </div>
+            <div>
+              <span>Business workspaces</span>
+              <code>{data.businessWorkspaces.length}</code>
             </div>
           </div>
         </article>
@@ -136,8 +141,8 @@ export function DataCenterPage() {
             <span className="pill warning">Preview only</span>
           </div>
           <p className="card-note">
-            Patch 1 validates export bundle metadata. Full import apply is deferred
-            to a later data portability patch.
+            Patch 2 still stops at preview validation, but it now understands the
+            workspace export bundle type and shows cross-business counts.
           </p>
 
           <label className="form-span-2">

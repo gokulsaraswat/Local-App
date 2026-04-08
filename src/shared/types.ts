@@ -40,6 +40,76 @@ export interface BusinessSettings {
   updatedAt: string;
 }
 
+export interface TaxProfile {
+  id: string;
+  businessId: string;
+  name: string;
+  taxLabel: string;
+  defaultRate: number;
+  pricesIncludeTax: boolean;
+  isDefault: boolean;
+  updatedAt: string;
+}
+
+export interface ReceiptProfile {
+  id: string;
+  businessId: string;
+  name: string;
+  footerText: string | null;
+  showAddress: boolean;
+  showPhone: boolean;
+  showEmail: boolean;
+  showBusinessCode: boolean;
+  paperWidth: string;
+  isDefault: boolean;
+  updatedAt: string;
+}
+
+export interface ModuleFlags {
+  businessId: string;
+  restaurantEnabled: boolean;
+  retailEnabled: boolean;
+  inventoryEnabled: boolean;
+  servicesEnabled: boolean;
+  customersEnabled: boolean;
+  suppliersEnabled: boolean;
+  expensesEnabled: boolean;
+  reportingEnabled: boolean;
+  dataCenterEnabled: boolean;
+  updatedAt: string;
+}
+
+export interface SequenceCounter {
+  id: string;
+  businessId: string;
+  scope: string;
+  prefix: string;
+  nextNumber: number;
+  padding: number;
+  resetPolicy: string;
+  updatedAt: string;
+}
+
+export interface NewBusinessWorkspaceInput {
+  name: string;
+  legalName: string | null;
+  code: string;
+  businessType: string;
+  currencyCode: string;
+  taxMode: string;
+  timezone: string;
+  locale: string;
+  activateNow: boolean;
+}
+
+export interface WorkspaceConfigurationInput {
+  businessSettings: BusinessSettings;
+  taxProfile: TaxProfile;
+  receiptProfile: ReceiptProfile;
+  moduleFlags: ModuleFlags;
+  sequenceCounters: SequenceCounter[];
+}
+
 export interface AppInfo {
   appName: string;
   productName: string;
@@ -129,11 +199,32 @@ export interface StorageStatus {
   exportCount: number;
 }
 
+export interface BusinessWorkspaceSummary {
+  businessId: string;
+  name: string;
+  code: string;
+  businessType: string;
+  currencyCode: string;
+  theme: string;
+  timezone: string;
+  taxLabel: string;
+  defaultTaxRate: number;
+  nextSaleSequence: string;
+  activeModules: string[];
+  archivedAt: string | null;
+  updatedAt: string;
+}
+
 export interface AppBootstrap {
   appInfo: AppInfo;
   activeBusiness: BusinessProfile;
   businessSettings: BusinessSettings;
+  activeTaxProfile: TaxProfile;
+  activeReceiptProfile: ReceiptProfile;
+  activeModuleFlags: ModuleFlags;
+  activeSequences: SequenceCounter[];
   businesses: BusinessProfile[];
+  businessWorkspaces: BusinessWorkspaceSummary[];
   patchHistory: PatchRecord[];
   backups: BackupRecord[];
   storage: StorageStatus;

@@ -1,6 +1,6 @@
 [package]
 name = "local-business-manager"
-version = "0.1.0"
+version = "0.2.0"
 description = "Local-first business management desktop app foundation"
 authors = ["OpenAI"]
 edition = "2021"

@@ -1,83 +1,179 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAppState } from "../../app/AppProvider";
-import type { BusinessSettings } from "../../shared/types";
-import { formatDateTime, humanizeBoolean } from "../../shared/utils";
+import type {
+  BusinessSettings,
+  ModuleFlags,
+  ReceiptProfile,
+  SequenceCounter,
+  TaxProfile,
+  WorkspaceConfigurationInput
+} from "../../shared/types";
+import {
+  formatDateTime,
+  formatSequencePreview,
+  humanizeBoolean,
+  titleCaseWords
+} from "../../shared/utils";
 
 export function SettingsPage() {
-  const { data, saveSettings } = useAppState();
-  const [form, setForm] = useState<BusinessSettings | null>(null);
+  const { data, saveWorkspace } = useAppState();
+  const [settings, setSettings] = useState<BusinessSettings | null>(null);
+  const [taxProfile, setTaxProfile] = useState<TaxProfile | null>(null);
+  const [receiptProfile, setReceiptProfile] = useState<ReceiptProfile | null>(null);
+  const [moduleFlags, setModuleFlags] = useState<ModuleFlags | null>(null);
+  const [sequences, setSequences] = useState<SequenceCounter[]>([]);
   const [statusMessage, setStatusMessage] = useState("");
 
   useEffect(() => {
-    if (data?.businessSettings) {
-      setForm(data.businessSettings);
-    }
-  }, [data?.businessSettings]);
+    if (!data) return;
+    setSettings(data.businessSettings);
+    setTaxProfile(data.activeTaxProfile);
+    setReceiptProfile(data.activeReceiptProfile);
+    setModuleFlags(data.activeModuleFlags);
+    setSequences(data.activeSequences);
+  }, [data]);
 
-  if (!data || !form) return null;
+  const nextSaleNumber = useMemo(() => {
+    const saleSequence = sequences.find((sequence) => sequence.scope === "sale");
+    if (!saleSequence) return "INV00001";
+    return formatSequencePreview(
+      saleSequence.prefix,
+      saleSequence.nextNumber,
+      saleSequence.padding
+    );
+  }, [sequences]);
 
-  function update<K extends keyof BusinessSettings>(
+  if (!data || !settings || !taxProfile || !receiptProfile || !moduleFlags) {
+    return null;
+  }
+
+  function updateSettings<K extends keyof BusinessSettings>(
     key: K,
     value: BusinessSettings[K]
   ) {
-    setForm((current) => (current ? { ...current, [key]: value } : current));
+    setSettings((current) => (current ? { ...current, [key]: value } : current));
+  }
+
+  function updateTaxProfile<K extends keyof TaxProfile>(
+    key: K,
+    value: TaxProfile[K]
+  ) {
+    setTaxProfile((current) => (current ? { ...current, [key]: value } : current));
+  }
+
+  function updateReceiptProfile<K extends keyof ReceiptProfile>(
+    key: K,
+    value: ReceiptProfile[K]
+  ) {
+    setReceiptProfile((current) => (current ? { ...current, [key]: value } : current));
+  }
+
+  function updateModuleFlags<K extends keyof ModuleFlags>(
+    key: K,
+    value: ModuleFlags[K]
+  ) {
+    setModuleFlags((current) => (current ? { ...current, [key]: value } : current));
+  }
+
+  function updateSequence<K extends keyof SequenceCounter>(
+    index: number,
+    key: K,
+    value: SequenceCounter[K]
+  ) {
+    setSequences((current) =>
+      current.map((sequence, sequenceIndex) =>
+        sequenceIndex === index ? { ...sequence, [key]: value } : sequence
+      )
+    );
   }
 
   async function handleSave() {
-    const current = form;
-    if (!current) return;
-    setStatusMessage("Saving settings…");
+    const currentSettings = settings;
+    const currentTaxProfile = taxProfile;
+    const currentReceiptProfile = receiptProfile;
+    const currentModuleFlags = moduleFlags;
+
+    if (
+      !currentSettings ||
+      !currentTaxProfile ||
+      !currentReceiptProfile ||
+      !currentModuleFlags
+    ) {
+      return;
+    }
+
+    setStatusMessage("Saving workspace configuration…");
     try {
-      await saveSettings(current);
-      setStatusMessage("Settings saved locally.");
+      const payload: WorkspaceConfigurationInput = {
+        businessSettings: currentSettings,
+        taxProfile: currentTaxProfile,
+        receiptProfile: currentReceiptProfile,
+        moduleFlags: currentModuleFlags,
+        sequenceCounters: sequences
+      };
+      await saveWorkspace(payload);
+      setStatusMessage("Workspace configuration saved locally.");
     } catch (error) {
       setStatusMessage(
-        error instanceof Error ? error.message : "Failed to save settings."
+        error instanceof Error ? error.message : "Failed to save workspace."
       );
     }
   }
 
   return (
     <div className="page-grid">
+      <section className="hero-card">
+        <div>
+          <div className="section-kicker">Per-business settings core</div>
+          <h2>{data.activeBusiness.name}</h2>
+          <p>
+            Patch 2 stores tax defaults, receipt defaults, module flags, and
+            sequence counters per business so later modules can stay isolated.
+          </p>
+        </div>
+        <div className="hero-actions align-start">
+          <span className="meta-chip">Next sale number: {nextSaleNumber}</span>
+          <span className="meta-chip">Updated {formatDateTime(settings.updatedAt)}</span>
+        </div>
+      </section>
+
       <section className="split-grid">
         <article className="card">
           <div className="card-header">
-            <h2>Settings foundation</h2>
-            <span className="pill neutral">
-              Updated {formatDateTime(form.updatedAt)}
-            </span>
+            <h2>General local settings</h2>
+            <span className="pill neutral">Business scoped</span>
           </div>
 
           <div className="form-grid">
             <label>
               <span>Timezone</span>
               <input
-                value={form.timezone}
-                onChange={(event) => update("timezone", event.target.value)}
+                value={settings.timezone}
+                onChange={(event) => updateSettings("timezone", event.target.value)}
               />
             </label>
 
             <label>
               <span>Locale</span>
               <input
-                value={form.locale}
-                onChange={(event) => update("locale", event.target.value)}
+                value={settings.locale}
+                onChange={(event) => updateSettings("locale", event.target.value)}
               />
             </label>
 
             <label>
               <span>Date format</span>
               <input
-                value={form.dateFormat}
-                onChange={(event) => update("dateFormat", event.target.value)}
+                value={settings.dateFormat}
+                onChange={(event) => updateSettings("dateFormat", event.target.value)}
               />
             </label>
 
             <label>
               <span>Theme preference</span>
               <select
-                value={form.theme}
-                onChange={(event) => update("theme", event.target.value)}
+                value={settings.theme}
+                onChange={(event) => updateSettings("theme", event.target.value)}
               >
                 <option value="system">System</option>
                 <option value="light">Light</option>
@@ -85,74 +181,12 @@ export function SettingsPage() {
               </select>
             </label>
 
-            <label>
-              <span>Tax label</span>
-              <input
-                value={form.taxLabel}
-                onChange={(event) => update("taxLabel", event.target.value)}
-              />
-            </label>
-
-            <label>
-              <span>Default tax rate (%)</span>
-              <input
-                type="number"
-                step="0.01"
-                value={form.defaultTaxRate}
-                onChange={(event) =>
-                  update("defaultTaxRate", Number(event.target.value))
-                }
-              />
-            </label>
-
-            <label className="form-span-2">
-              <span>Receipt footer</span>
-              <textarea
-                rows={4}
-                value={form.receiptFooter ?? ""}
-                onChange={(event) => update("receiptFooter", event.target.value)}
-              />
-            </label>
-
             <label className="toggle-row">
               <input
                 type="checkbox"
-                checked={form.pricesIncludeTax}
+                checked={settings.autoBackupEnabled}
                 onChange={(event) =>
-                  update("pricesIncludeTax", event.target.checked)
-                }
-              />
-              <span>Prices include tax</span>
-            </label>
-
-            <label className="toggle-row">
-              <input
-                type="checkbox"
-                checked={form.receiptShowAddress}
-                onChange={(event) =>
-                  update("receiptShowAddress", event.target.checked)
-                }
-              />
-              <span>Show address on receipt</span>
-            </label>
-
-            <label className="toggle-row">
-              <input
-                type="checkbox"
-                checked={form.receiptShowPhone}
-                onChange={(event) =>
-                  update("receiptShowPhone", event.target.checked)
-                }
-              />
-              <span>Show phone on receipt</span>
-            </label>
-
-            <label className="toggle-row">
-              <input
-                type="checkbox"
-                checked={form.autoBackupEnabled}
-                onChange={(event) =>
-                  update("autoBackupEnabled", event.target.checked)
+                  updateSettings("autoBackupEnabled", event.target.checked)
                 }
               />
               <span>Auto backup preference</span>
@@ -161,99 +195,300 @@ export function SettingsPage() {
             <label className="form-span-2">
               <span>Backup directory override</span>
               <input
-                value={form.backupDirectory ?? ""}
-                onChange={(event) => update("backupDirectory", event.target.value)}
+                value={settings.backupDirectory ?? ""}
+                onChange={(event) =>
+                  updateSettings("backupDirectory", event.target.value)
+                }
               />
             </label>
           </div>
 
-          <div className="card-header">
-            <h3>Module toggles foundation</h3>
-            <span className="muted-text">Stored locally for future patches</span>
+          <div className="card-header spacing-top">
+            <h3>Default tax profile</h3>
           </div>
-
-          <div className="toggle-stack">
-            <label className="toggle-row">
+          <div className="form-grid">
+            <label>
+              <span>Profile name</span>
               <input
-                type="checkbox"
-                checked={form.moduleRestaurantEnabled}
+                value={taxProfile.name}
+                onChange={(event) => updateTaxProfile("name", event.target.value)}
+              />
+            </label>
+
+            <label>
+              <span>Tax label</span>
+              <input
+                value={taxProfile.taxLabel}
                 onChange={(event) =>
-                  update("moduleRestaurantEnabled", event.target.checked)
+                  updateTaxProfile("taxLabel", event.target.value)
                 }
               />
-              <span>Restaurant mode</span>
+            </label>
+
+            <label>
+              <span>Default tax rate (%)</span>
+              <input
+                type="number"
+                step="0.01"
+                value={taxProfile.defaultRate}
+                onChange={(event) =>
+                  updateTaxProfile("defaultRate", Number(event.target.value))
+                }
+              />
             </label>
 
             <label className="toggle-row">
               <input
                 type="checkbox"
-                checked={form.moduleRetailEnabled}
+                checked={taxProfile.pricesIncludeTax}
                 onChange={(event) =>
-                  update("moduleRetailEnabled", event.target.checked)
+                  updateTaxProfile("pricesIncludeTax", event.target.checked)
                 }
               />
-              <span>Retail mode</span>
+              <span>Prices include tax</span>
             </label>
-
-            <label className="toggle-row">
-              <input
-                type="checkbox"
-                checked={form.moduleInventoryEnabled}
-                onChange={(event) =>
-                  update("moduleInventoryEnabled", event.target.checked)
-                }
-              />
-              <span>Inventory mode</span>
-            </label>
-
-            <label className="toggle-row">
-              <input
-                type="checkbox"
-                checked={form.moduleServicesEnabled}
-                onChange={(event) =>
-                  update("moduleServicesEnabled", event.target.checked)
-                }
-              />
-              <span>Service mode</span>
-            </label>
-          </div>
-
-          <div className="inline-actions">
-            <button className="primary-button" type="button" onClick={() => void handleSave()}>
-              Save settings
-            </button>
-            <span className="muted-text">{statusMessage}</span>
           </div>
         </article>
 
         <article className="card">
           <div className="card-header">
-            <h3>Current effective settings</h3>
+            <h2>Receipt profile foundation</h2>
+            <span className="pill success">Local print defaults</span>
+          </div>
+
+          <div className="form-grid">
+            <label>
+              <span>Profile name</span>
+              <input
+                value={receiptProfile.name}
+                onChange={(event) =>
+                  updateReceiptProfile("name", event.target.value)
+                }
+              />
+            </label>
+
+            <label>
+              <span>Paper width</span>
+              <select
+                value={receiptProfile.paperWidth}
+                onChange={(event) =>
+                  updateReceiptProfile("paperWidth", event.target.value)
+                }
+              >
+                <option value="80mm">80mm</option>
+                <option value="58mm">58mm</option>
+                <option value="A4">A4</option>
+              </select>
+            </label>
+
+            <label className="form-span-2">
+              <span>Receipt footer</span>
+              <textarea
+                rows={4}
+                value={receiptProfile.footerText ?? ""}
+                onChange={(event) =>
+                  updateReceiptProfile("footerText", event.target.value)
+                }
+              />
+            </label>
+
+            <label className="toggle-row">
+              <input
+                type="checkbox"
+                checked={receiptProfile.showAddress}
+                onChange={(event) =>
+                  updateReceiptProfile("showAddress", event.target.checked)
+                }
+              />
+              <span>Show address</span>
+            </label>
+
+            <label className="toggle-row">
+              <input
+                type="checkbox"
+                checked={receiptProfile.showPhone}
+                onChange={(event) =>
+                  updateReceiptProfile("showPhone", event.target.checked)
+                }
+              />
+              <span>Show phone</span>
+            </label>
+
+            <label className="toggle-row">
+              <input
+                type="checkbox"
+                checked={receiptProfile.showEmail}
+                onChange={(event) =>
+                  updateReceiptProfile("showEmail", event.target.checked)
+                }
+              />
+              <span>Show email</span>
+            </label>
+
+            <label className="toggle-row">
+              <input
+                type="checkbox"
+                checked={receiptProfile.showBusinessCode}
+                onChange={(event) =>
+                  updateReceiptProfile("showBusinessCode", event.target.checked)
+                }
+              />
+              <span>Show business code</span>
+            </label>
+          </div>
+
+          <div className="card-header spacing-top">
+            <h3>Module flags foundation</h3>
+            <span className="muted-text">Future patch toggles</span>
+          </div>
+          <div className="toggle-grid">
+            {[
+              ["restaurantEnabled", "Restaurant mode"],
+              ["retailEnabled", "Retail mode"],
+              ["inventoryEnabled", "Inventory mode"],
+              ["servicesEnabled", "Service mode"],
+              ["customersEnabled", "Customers"],
+              ["suppliersEnabled", "Suppliers"],
+              ["expensesEnabled", "Expenses"],
+              ["reportingEnabled", "Reporting"],
+              ["dataCenterEnabled", "Data center"]
+            ].map(([key, label]) => (
+              <label className="toggle-row" key={key}>
+                <input
+                  type="checkbox"
+                  checked={moduleFlags[key as keyof ModuleFlags] as boolean}
+                  onChange={(event) =>
+                    updateModuleFlags(
+                      key as keyof ModuleFlags,
+                      event.target.checked as ModuleFlags[keyof ModuleFlags]
+                    )
+                  }
+                />
+                <span>{label}</span>
+              </label>
+            ))}
+          </div>
+        </article>
+      </section>
+
+      <section className="split-grid">
+        <article className="card">
+          <div className="card-header">
+            <h2>Sequence counters foundation</h2>
+            <span className="pill warning">Patch 2</span>
+          </div>
+          <p className="card-note">
+            These document number seeds are stored now so POS, purchases, and
+            ledger records can reuse them later without breaking numbering.
+          </p>
+
+          <div className="sequence-list">
+            {sequences.map((sequence, index) => (
+              <div className="sequence-row" key={sequence.id || `${sequence.scope}-${index}`}>
+                <div className="sequence-row-header">
+                  <div>
+                    <strong>{titleCaseWords(sequence.scope)}</strong>
+                    <div className="muted-text">
+                      Preview {formatSequencePreview(sequence.prefix, sequence.nextNumber, sequence.padding)}
+                    </div>
+                  </div>
+                  <span className="pill neutral">{sequence.resetPolicy}</span>
+                </div>
+
+                <div className="form-grid compact-form-grid">
+                  <label>
+                    <span>Prefix</span>
+                    <input
+                      value={sequence.prefix}
+                      onChange={(event) =>
+                        updateSequence(index, "prefix", event.target.value.toUpperCase())
+                      }
+                    />
+                  </label>
+
+                  <label>
+                    <span>Next number</span>
+                    <input
+                      type="number"
+                      min="1"
+                      value={sequence.nextNumber}
+                      onChange={(event) =>
+                        updateSequence(index, "nextNumber", Number(event.target.value))
+                      }
+                    />
+                  </label>
+
+                  <label>
+                    <span>Padding</span>
+                    <input
+                      type="number"
+                      min="1"
+                      value={sequence.padding}
+                      onChange={(event) =>
+                        updateSequence(index, "padding", Number(event.target.value))
+                      }
+                    />
+                  </label>
+
+                  <label>
+                    <span>Reset policy</span>
+                    <select
+                      value={sequence.resetPolicy}
+                      onChange={(event) =>
+                        updateSequence(index, "resetPolicy", event.target.value)
+                      }
+                    >
+                      <option value="none">No reset</option>
+                      <option value="daily">Daily</option>
+                      <option value="monthly">Monthly</option>
+                      <option value="yearly">Yearly</option>
+                    </select>
+                  </label>
+                </div>
+              </div>
+            ))}
+          </div>
+        </article>
+
+        <article className="card">
+          <div className="card-header">
+            <h2>Current effective settings</h2>
           </div>
           <div className="detail-list">
             <div>
               <span>Theme</span>
-              <code>{form.theme}</code>
+              <code>{settings.theme}</code>
             </div>
             <div>
-              <span>Restaurant mode</span>
-              <code>{humanizeBoolean(form.moduleRestaurantEnabled)}</code>
+              <span>Auto backup</span>
+              <code>{humanizeBoolean(settings.autoBackupEnabled)}</code>
             </div>
             <div>
-              <span>Retail mode</span>
-              <code>{humanizeBoolean(form.moduleRetailEnabled)}</code>
+              <span>Receipt paper width</span>
+              <code>{receiptProfile.paperWidth}</code>
             </div>
             <div>
-              <span>Inventory mode</span>
-              <code>{humanizeBoolean(form.moduleInventoryEnabled)}</code>
+              <span>Receipt shows email</span>
+              <code>{humanizeBoolean(receiptProfile.showEmail)}</code>
             </div>
             <div>
-              <span>Service mode</span>
-              <code>{humanizeBoolean(form.moduleServicesEnabled)}</code>
+              <span>Reporting module</span>
+              <code>{humanizeBoolean(moduleFlags.reportingEnabled)}</code>
+            </div>
+            <div>
+              <span>Next sale sequence</span>
+              <code>{nextSaleNumber}</code>
             </div>
           </div>
         </article>
       </section>
+
+      <div className="inline-actions">
+        <button className="primary-button" type="button" onClick={() => void handleSave()}>
+          Save Workspace Settings
+        </button>
+        <span className="muted-text">{statusMessage}</span>
+      </div>
     </div>
   );
 }

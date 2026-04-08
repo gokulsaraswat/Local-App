@@ -2,13 +2,13 @@ use tauri::AppHandle;
 
 use crate::{
     core::{db, error::CommandResult},
-    domain::models::BusinessSettings,
+    domain::models::WorkspaceConfigurationInput,
 };
 
 #[tauri::command]
-pub fn save_business_settings(
+pub fn save_workspace_configuration(
     app: AppHandle,
-    settings: BusinessSettings,
-) -> CommandResult<BusinessSettings> {
-    db::with_connection(&app, |conn, _paths| db::save_business_settings(conn, &settings))
+    input: WorkspaceConfigurationInput,
+) -> CommandResult<()> {
+    db::with_connection(&app, |conn, _paths| db::save_workspace_configuration(conn, &input))
 }

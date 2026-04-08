@@ -46,6 +46,106 @@ pub struct BusinessSettings {
     pub updated_at: String,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TaxProfile {
+    pub id: String,
+    pub business_id: String,
+    pub name: String,
+    pub tax_label: String,
+    pub default_rate: f64,
+    pub prices_include_tax: bool,
+    pub is_default: bool,
+    pub updated_at: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ReceiptProfile {
+    pub id: String,
+    pub business_id: String,
+    pub name: String,
+    pub footer_text: Option<String>,
+    pub show_address: bool,
+    pub show_phone: bool,
+    pub show_email: bool,
+    pub show_business_code: bool,
+    pub paper_width: String,
+    pub is_default: bool,
+    pub updated_at: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ModuleFlags {
+    pub business_id: String,
+    pub restaurant_enabled: bool,
+    pub retail_enabled: bool,
+    pub inventory_enabled: bool,
+    pub services_enabled: bool,
+    pub customers_enabled: bool,
+    pub suppliers_enabled: bool,
+    pub expenses_enabled: bool,
+    pub reporting_enabled: bool,
+    pub data_center_enabled: bool,
+    pub updated_at: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SequenceCounter {
+    pub id: String,
+    pub business_id: String,
+    pub scope: String,
+    pub prefix: String,
+    pub next_number: i64,
+    pub padding: i64,
+    pub reset_policy: String,
+    pub updated_at: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct NewBusinessWorkspaceInput {
+    pub name: String,
+    pub legal_name: Option<String>,
+    pub code: String,
+    pub business_type: String,
+    pub currency_code: String,
+    pub tax_mode: String,
+    pub timezone: String,
+    pub locale: String,
+    pub activate_now: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct WorkspaceConfigurationInput {
+    pub business_settings: BusinessSettings,
+    pub tax_profile: TaxProfile,
+    pub receipt_profile: ReceiptProfile,
+    pub module_flags: ModuleFlags,
+    pub sequence_counters: Vec<SequenceCounter>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BusinessWorkspaceSummary {
+    pub business_id: String,
+    pub name: String,
+    pub code: String,
+    pub business_type: String,
+    pub currency_code: String,
+    pub theme: String,
+    pub timezone: String,
+    pub tax_label: String,
+    pub default_tax_rate: f64,
+    pub next_sale_sequence: String,
+    pub active_modules: Vec<String>,
+    pub archived_at: Option<String>,
+    pub updated_at: String,
+}
+
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AppInfo {
@@ -161,7 +261,12 @@ pub struct AppBootstrap {
     pub app_info: AppInfo,
     pub active_business: BusinessProfile,
     pub business_settings: BusinessSettings,
+    pub active_tax_profile: TaxProfile,
+    pub active_receipt_profile: ReceiptProfile,
+    pub active_module_flags: ModuleFlags,
+    pub active_sequences: Vec<SequenceCounter>,
     pub businesses: Vec<BusinessProfile>,
+    pub business_workspaces: Vec<BusinessWorkspaceSummary>,
     pub patch_history: Vec<PatchRecord>,
     pub backups: Vec<BackupRecord>,
     pub storage: StorageStatus,

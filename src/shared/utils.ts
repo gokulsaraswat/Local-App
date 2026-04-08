@@ -15,3 +15,26 @@ export function humanizeBoolean(value: boolean): string {
 export function classNames(...values: Array<string | false | null | undefined>): string {
   return values.filter(Boolean).join(" ");
 }
+
+export function titleCaseWords(value: string): string {
+  return value
+    .split(/[-_\s]+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+export function formatSequencePreview(
+  prefix: string,
+  nextNumber: number,
+  padding: number
+): string {
+  const normalizedPadding = Math.max(1, Number.isFinite(padding) ? padding : 1);
+  const normalizedNumber = Math.max(1, Number.isFinite(nextNumber) ? nextNumber : 1);
+  return `${prefix}${String(normalizedNumber).padStart(normalizedPadding, "0")}`;
+}
+
+export function formatModuleList(modules: string[]): string {
+  if (modules.length === 0) return "No modules enabled";
+  return modules.map(titleCaseWords).join(", ");
+}

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useAppState } from "../../app/AppProvider";
 import type { NavPage } from "../../shared/types";
-import { classNames } from "../../shared/utils";
+import { classNames, formatModuleList } from "../../shared/utils";
 import { DashboardPage } from "../dashboard/DashboardPage";
 import { BusinessPage } from "../business/BusinessPage";
 import { SettingsPage } from "../settings/SettingsPage";
@@ -17,13 +17,13 @@ const navItems: Array<{ key: NavPage; label: string; description: string }> = [
   },
   {
     key: "business",
-    label: "Business",
-    description: "Profile and identity"
+    label: "Businesses",
+    description: "Profiles and switching"
   },
   {
     key: "settings",
     label: "Settings",
-    description: "Defaults and module toggles"
+    description: "Tax, receipt, modules"
   },
   {
     key: "data-center",
@@ -33,29 +33,57 @@ const navItems: Array<{ key: NavPage; label: string; description: string }> = [
 ];
 
 export function AppShell() {
-  const { data } = useAppState();
+  const { data, switchBusiness } = useAppState();
   const [activePage, setActivePage] = useState<NavPage>(() => {
     const stored = window.localStorage.getItem(NAV_STORAGE_KEY) as NavPage | null;
     return stored ?? "dashboard";
   });
+  const [switchStatus, setSwitchStatus] = useState<string>("");
 
   useEffect(() => {
     window.localStorage.setItem(NAV_STORAGE_KEY, activePage);
   }, [activePage]);
 
+  useEffect(() => {
+    setSwitchStatus("");
+  }, [data?.activeBusiness.id]);
+
   const pageTitle = useMemo(() => {
     return navItems.find((item) => item.key === activePage)?.label ?? "Dashboard";
   }, [activePage]);
 
+  const activeWorkspace = useMemo(() => {
+    return data?.businessWorkspaces.find(
+      (workspace) => workspace.businessId === data.activeBusiness.id
+    );
+  }, [data]);
+
   if (!data) {
     return null;
+  }
+
+  async function handleBusinessSwitch(nextBusinessId: string) {
+    const currentData = data;
+    if (!currentData || nextBusinessId === currentData.activeBusiness.id) {
+      return;
+    }
+
+    setSwitchStatus("Switching active business…");
+    try {
+      const switched = await switchBusiness(nextBusinessId);
+      setSwitchStatus(`Switched to ${switched.name}.`);
+    } catch (error) {
+      setSwitchStatus(
+        error instanceof Error ? error.message : "Failed to switch business."
+      );
+    }
   }
 
   return (
     <div className="app-shell">
       <aside className="sidebar">
         <div className="sidebar-brand">
-          <div className="brand-badge">P1</div>
+          <div className="brand-badge">P2</div>
           <div>
             <strong>Local Business Manager</strong>
             <div className="muted-text">
@@ -85,15 +113,48 @@ export function AppShell() {
         <div className="sidebar-section-label">Active business</div>
         <div className="sidebar-card">
           <div className="sidebar-card-title">{data.activeBusiness.name}</div>
-          <div className="muted-text">{data.activeBusiness.businessType}</div>
-          <div className="muted-text">{data.activeBusiness.currencyCode}</div>
+          <div className="muted-text">
+            {data.activeBusiness.businessType} · {data.activeBusiness.currencyCode}
+          </div>
+          <label className="sidebar-field">
+            <span>Switch workspace</span>
+            <select
+              className="sidebar-select"
+              value={data.activeBusiness.id}
+              onChange={(event) => void handleBusinessSwitch(event.target.value)}
+            >
+              {data.businessWorkspaces.map((workspace) => (
+                <option key={workspace.businessId} value={workspace.businessId}>
+                  {workspace.name} ({workspace.code})
+                </option>
+              ))}
+            </select>
+          </label>
+          <div className="sidebar-metadata-grid">
+            <div>
+              <span>Timezone</span>
+              <strong>{data.businessSettings.timezone}</strong>
+            </div>
+            <div>
+              <span>Tax</span>
+              <strong>
+                {data.activeTaxProfile.taxLabel} · {data.activeTaxProfile.defaultRate}%
+              </strong>
+            </div>
+          </div>
+          <div className="muted-text small-text">
+            {switchStatus || activeWorkspace?.nextSaleSequence || "Sequence pending"}
+          </div>
         </div>
 
-        <div className="sidebar-section-label">Foundation status</div>
+        <div className="sidebar-section-label">Business mode</div>
         <div className="sidebar-card">
-          <div className="sidebar-pill success">Local-first</div>
-          <div className="sidebar-pill neutral">SQLite ready</div>
+          <div className="sidebar-pill success">Multi-business ready</div>
+          <div className="sidebar-pill neutral">Settings profiles ready</div>
           <div className="sidebar-pill neutral">Patch registry ready</div>
+          <div className="muted-text small-text">
+            {formatModuleList(activeWorkspace?.activeModules ?? [])}
+          </div>
         </div>
       </aside>
 
@@ -102,14 +163,16 @@ export function AppShell() {
           <div>
             <h1>{pageTitle}</h1>
             <p>
-              Foundation shell for a local-first business desktop application.
+              Patch 2 expands the foundation into a practical multi-business local
+              workspace.
             </p>
           </div>
           <div className="workspace-header-meta">
             <span className="meta-chip">Business: {data.activeBusiness.code}</span>
             <span className="meta-chip">
-              Schema v{data.appInfo.schemaVersion}
+              Tax: {data.activeTaxProfile.taxLabel}
             </span>
+            <span className="meta-chip">Schema v{data.appInfo.schemaVersion}</span>
           </div>
         </header>
 

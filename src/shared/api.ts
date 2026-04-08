@@ -3,8 +3,9 @@ import type {
   AppBootstrap,
   BackupRecord,
   BusinessProfile,
-  BusinessSettings,
-  ImportPreview
+  ImportPreview,
+  NewBusinessWorkspaceInput,
+  WorkspaceConfigurationInput
 } from "./types";
 
 export async function bootstrapApp(): Promise<AppBootstrap> {
@@ -17,10 +18,24 @@ export async function saveBusinessProfile(
   return invoke<BusinessProfile>("save_business_profile", { profile });
 }
 
-export async function saveBusinessSettings(
-  settings: BusinessSettings
-): Promise<BusinessSettings> {
-  return invoke<BusinessSettings>("save_business_settings", { settings });
+export async function createBusinessWorkspace(
+  input: NewBusinessWorkspaceInput
+): Promise<BusinessProfile> {
+  return invoke<BusinessProfile>("create_business_workspace", { input });
+}
+
+export async function switchActiveBusiness(
+  businessId: string
+): Promise<BusinessProfile> {
+  return invoke<BusinessProfile>("switch_active_business", {
+    businessId
+  });
+}
+
+export async function saveWorkspaceConfiguration(
+  input: WorkspaceConfigurationInput
+): Promise<void> {
+  return invoke<void>("save_workspace_configuration", { input });
 }
 
 export async function createBackupSnapshot(): Promise<BackupRecord> {

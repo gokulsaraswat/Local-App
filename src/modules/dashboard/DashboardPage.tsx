@@ -1,6 +1,6 @@
 import { useAppState } from "../../app/AppProvider";
 import type { NavPage } from "../../shared/types";
-import { formatDateTime } from "../../shared/utils";
+import { formatDateTime, formatModuleList, titleCaseWords } from "../../shared/utils";
 
 interface DashboardPageProps {
   onNavigate: (page: NavPage) => void;
@@ -15,7 +15,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
     <div className="page-grid">
       <section className="hero-card">
         <div>
-          <div className="section-kicker">Patch 1 foundation</div>
+          <div className="section-kicker">Patch 2 workspace core</div>
           <h2>{data.dashboard.heroTitle}</h2>
           <p>{data.dashboard.heroBody}</p>
         </div>
@@ -25,19 +25,19 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
             type="button"
             onClick={() => onNavigate("business")}
           >
-            Review Business Profile
+            Manage Businesses
           </button>
           <button
             className="secondary-button"
             type="button"
-            onClick={() => onNavigate("data-center")}
+            onClick={() => onNavigate("settings")}
           >
-            Open Data Center
+            Open Settings Profiles
           </button>
         </div>
       </section>
 
-      <section className="card-grid">
+      <section className="card-grid card-grid-5">
         {data.dashboard.kpis.map((kpi) => (
           <article className="card" key={kpi.id}>
             <div className="card-label">{kpi.label}</div>
@@ -50,8 +50,71 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
       <section className="split-grid">
         <article className="card">
           <div className="card-header">
+            <h3>Business workspaces</h3>
+            <span className="pill success">
+              {data.businessWorkspaces.length} configured
+            </span>
+          </div>
+          <div className="stack-list">
+            {data.businessWorkspaces.map((workspace) => (
+              <div className="list-row" key={workspace.businessId}>
+                <div>
+                  <strong>
+                    {workspace.name}
+                    {workspace.businessId === data.activeBusiness.id ? " · active" : ""}
+                  </strong>
+                  <div className="muted-text">
+                    {workspace.code} · {workspace.currencyCode} · {workspace.timezone}
+                  </div>
+                  <div className="tag-list compact-tags">
+                    {workspace.activeModules.map((module) => (
+                      <span className="tag" key={`${workspace.businessId}-${module}`}>
+                        {titleCaseWords(module)}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                <span className="muted-text">{workspace.nextSaleSequence}</span>
+              </div>
+            ))}
+          </div>
+        </article>
+
+        <article className="card">
+          <div className="card-header">
+            <h3>Current business configuration</h3>
+            <span className="pill neutral">{data.activeBusiness.code}</span>
+          </div>
+          <div className="detail-list">
+            <div>
+              <span>Theme</span>
+              <code>{data.businessSettings.theme}</code>
+            </div>
+            <div>
+              <span>Tax profile</span>
+              <code>
+                {data.activeTaxProfile.name} · {data.activeTaxProfile.taxLabel} · {data.activeTaxProfile.defaultRate}%
+              </code>
+            </div>
+            <div>
+              <span>Receipt profile</span>
+              <code>
+                {data.activeReceiptProfile.name} · {data.activeReceiptProfile.paperWidth}
+              </code>
+            </div>
+            <div>
+              <span>Enabled modules</span>
+              <code>{formatModuleList(data.businessWorkspaces.find((workspace) => workspace.businessId === data.activeBusiness.id)?.activeModules ?? [])}</code>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <section className="split-grid">
+        <article className="card">
+          <div className="card-header">
             <h3>Recent local activity</h3>
-            <span className="pill neutral">Demo seeded</span>
+            <span className="pill neutral">Local only</span>
           </div>
           <div className="stack-list">
             {data.dashboard.recentActivity.map((activity) => (
@@ -72,7 +135,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
 
         <article className="card">
           <div className="card-header">
-            <h3>Module roadmap from this foundation</h3>
+            <h3>Module roadmap from this workspace</h3>
             <span className="pill success">Patch-ready</span>
           </div>
           <div className="stack-list">
