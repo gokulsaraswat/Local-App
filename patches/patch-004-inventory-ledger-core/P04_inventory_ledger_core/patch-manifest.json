@@ -1,0 +1,54 @@
+{
+  "patch_id": "P004_inventory_ledger_core",
+  "patch_name": "Inventory Ledger Core",
+  "base_version": "0.3.0",
+  "target_version": "0.4.0",
+  "description": "Adds a local inventory ledger, movement history, stock balance tracking, reorder monitoring, and inventory-aware export preview on top of Patch 3 catalog core.",
+  "dependencies": [
+    "P003_catalog_core"
+  ],
+  "safe_on_empty_project": false,
+  "migration_required": true,
+  "rollback_supported": true,
+  "files_root": "files",
+  "files_added": [
+    "scripts/validate-patch4.mjs",
+    "src-tauri/src/commands/inventory.rs",
+    "src-tauri/src/core/inventory.rs",
+    "src-tauri/src/core/migrations/004_inventory_ledger_core.sql",
+    "src/modules/inventory/InventoryPage.tsx"
+  ],
+  "files_updated": [
+    "package.json",
+    "src-tauri/Cargo.toml",
+    "src-tauri/src/commands/bootstrap.rs",
+    "src-tauri/src/commands/data_center.rs",
+    "src-tauri/src/commands/mod.rs",
+    "src-tauri/src/core/catalog.rs",
+    "src-tauri/src/core/db.rs",
+    "src-tauri/src/core/migrations.rs",
+    "src-tauri/src/core/mod.rs",
+    "src-tauri/src/core/patching.rs",
+    "src-tauri/src/core/seed.rs",
+    "src-tauri/src/domain/bootstrap.rs",
+    "src-tauri/src/domain/models.rs",
+    "src-tauri/src/lib.rs",
+    "src-tauri/tauri.conf.json",
+    "src/app/AppProvider.tsx",
+    "src/modules/catalog/CatalogPage.tsx",
+    "src/modules/dashboard/DashboardPage.tsx",
+    "src/modules/data-center/DataCenterPage.tsx",
+    "src/modules/shell/AppShell.tsx",
+    "src/shared/api.ts",
+    "src/shared/types.ts",
+    "src/shared/utils.ts",
+    "src/styles.css"
+  ],
+  "files_deleted": [],
+  "post_apply_steps": [
+    "cd <target>",
+    "npm install",
+    "npm run validate:patch4",
+    "npm run tauri dev"
+  ]
+}

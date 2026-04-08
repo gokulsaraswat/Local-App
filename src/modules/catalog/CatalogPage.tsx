@@ -279,12 +279,12 @@ export function CatalogPage() {
     <div className="page-grid">
       <section className="hero-card">
         <div>
-          <div className="section-kicker">Patch 3 catalog core</div>
+          <div className="section-kicker">Catalog core + Patch 4 inventory sync</div>
           <h2>{data.activeBusiness.name} item master</h2>
           <p>
-            Build a clean local catalog for retail items, menu items, and services.
-            This patch keeps stock quantities lightweight and prepares the data shape for
-            deeper inventory and POS patches.
+            Build and maintain a clean local catalog for retail items, menu items, and
+            services. Patch 4 now records stock quantity changes into the inventory
+            ledger so catalog edits and inventory history stay aligned locally.
           </p>
         </div>
         <div className="hero-actions align-start">

@@ -2,11 +2,12 @@ import { useEffect, useMemo, useState } from "react";
 import { useAppState } from "../../app/AppProvider";
 import type { NavPage } from "../../shared/types";
 import { classNames, formatModuleList } from "../../shared/utils";
-import { DashboardPage } from "../dashboard/DashboardPage";
-import { CatalogPage } from "../catalog/CatalogPage";
 import { BusinessPage } from "../business/BusinessPage";
-import { SettingsPage } from "../settings/SettingsPage";
+import { CatalogPage } from "../catalog/CatalogPage";
+import { DashboardPage } from "../dashboard/DashboardPage";
 import { DataCenterPage } from "../data-center/DataCenterPage";
+import { InventoryPage } from "../inventory/InventoryPage";
+import { SettingsPage } from "../settings/SettingsPage";
 
 const NAV_STORAGE_KEY = "lfbm.activeNavPage";
 
@@ -20,6 +21,11 @@ const navItems: Array<{ key: NavPage; label: string; description: string }> = [
     key: "catalog",
     label: "Catalog",
     description: "Products, menu, services"
+  },
+  {
+    key: "inventory",
+    label: "Inventory",
+    description: "Stock ledger and balances"
   },
   {
     key: "business",
@@ -89,7 +95,7 @@ export function AppShell() {
     <div className="app-shell">
       <aside className="sidebar">
         <div className="sidebar-brand">
-          <div className="brand-badge">P3</div>
+          <div className="brand-badge">P4</div>
           <div>
             <strong>Local Business Manager</strong>
             <div className="muted-text">
@@ -152,8 +158,16 @@ export function AppShell() {
               <strong>{data.catalogSummary.activeItems}</strong>
             </div>
             <div>
-              <span>Low stock flags</span>
-              <strong>{data.catalogSummary.lowStockCandidates}</strong>
+              <span>Low stock</span>
+              <strong>{data.inventorySummary.lowStockItems}</strong>
+            </div>
+            <div>
+              <span>Tracked items</span>
+              <strong>{data.inventorySummary.totalTrackedItems}</strong>
+            </div>
+            <div>
+              <span>Movements</span>
+              <strong>{data.inventorySummary.movementCount}</strong>
             </div>
           </div>
           <div className="muted-text small-text">
@@ -163,9 +177,9 @@ export function AppShell() {
 
         <div className="sidebar-section-label">Business mode</div>
         <div className="sidebar-card">
-          <div className="sidebar-pill success">Catalog core ready</div>
+          <div className="sidebar-pill success">Inventory ledger ready</div>
+          <div className="sidebar-pill neutral">Catalog core ready</div>
           <div className="sidebar-pill neutral">Multi-business ready</div>
-          <div className="sidebar-pill neutral">Patch registry ready</div>
           <div className="muted-text small-text">
             {formatModuleList(activeWorkspace?.activeModules ?? [])}
           </div>
@@ -177,25 +191,27 @@ export function AppShell() {
           <div>
             <h1>{pageTitle}</h1>
             <p>
-              Patch 3 adds local catalog structure for products, menu items, services,
-              barcodes, categories, and units without bringing in full POS or inventory
-              ledgers yet.
+              Patch 4 links catalog stock items to a real local inventory ledger with
+              stock movements, reorder thresholds, recent adjustments, and exportable
+              inventory history, while still staying fully offline.
             </p>
           </div>
           <div className="workspace-header-meta">
             <span className="meta-chip">Business: {data.activeBusiness.code}</span>
             <span className="meta-chip">
-              Items: {data.catalogSummary.activeItems}
+              Tracked stock: {data.inventorySummary.totalTrackedItems}
+            </span>
+            <span className="meta-chip">
+              Movements: {data.inventorySummary.movementCount}
             </span>
             <span className="meta-chip">Schema v{data.appInfo.schemaVersion}</span>
           </div>
         </header>
 
         <section className="workspace-content">
-          {activePage === "dashboard" && (
-            <DashboardPage onNavigate={setActivePage} />
-          )}
+          {activePage === "dashboard" && <DashboardPage onNavigate={setActivePage} />}
           {activePage === "catalog" && <CatalogPage />}
+          {activePage === "inventory" && <InventoryPage />}
           {activePage === "business" && <BusinessPage />}
           {activePage === "settings" && <SettingsPage />}
           {activePage === "data-center" && <DataCenterPage />}
