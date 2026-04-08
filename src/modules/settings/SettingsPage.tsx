@@ -127,7 +127,7 @@ export function SettingsPage() {
           <div className="section-kicker">Per-business settings core</div>
           <h2>{data.activeBusiness.name}</h2>
           <p>
-            Patch 2 stores tax defaults, receipt defaults, module flags, and
+            Patch 3 keeps tax defaults, receipt defaults, module flags, and
             sequence counters per business so later modules can stay isolated.
           </p>
         </div>
@@ -375,7 +375,7 @@ export function SettingsPage() {
         <article className="card">
           <div className="card-header">
             <h2>Sequence counters foundation</h2>
-            <span className="pill warning">Patch 2</span>
+            <span className="pill warning">Patch 3</span>
           </div>
           <p className="card-note">
             These document number seeds are stored now so POS, purchases, and

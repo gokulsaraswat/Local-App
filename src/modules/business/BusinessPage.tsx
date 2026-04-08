@@ -234,11 +234,12 @@ export function BusinessPage() {
         <article className="card">
           <div className="card-header">
             <h2>Create Business Workspace</h2>
-            <span className="pill warning">Patch 2</span>
+            <span className="pill warning">Patch 3</span>
           </div>
           <p className="card-note">
-            Add another business profile with isolated local settings. Inventory,
-            catalog, and sales modules can attach to it in future patches.
+            Add another business profile with isolated local settings. The catalog
+            foundation in Patch 3 can now attach categories, units, and items to it,
+            while deeper sales and inventory flows arrive in later patches.
           </p>
 
           <div className="form-grid">

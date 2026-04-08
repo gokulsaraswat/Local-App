@@ -1,0 +1,54 @@
+{
+  "patch_id": "P003_catalog_core",
+  "patch_name": "Catalog Core",
+  "base_version": "0.2.0",
+  "target_version": "0.3.0",
+  "description": "Adds business-scoped catalog structure for products, menu items, and services, including categories, units, items, barcode foundations, demo catalog seeding, and catalog-aware export/preview support.",
+  "dependencies": [
+    "P002_multi_business_workspace_settings_core"
+  ],
+  "safe_on_empty_project": false,
+  "migration_required": true,
+  "rollback_supported": true,
+  "files_root": "files",
+  "files_added": [
+    "scripts/validate-patch3.mjs",
+    "src-tauri/src/commands/catalog.rs",
+    "src-tauri/src/core/catalog.rs",
+    "src-tauri/src/core/migrations/003_catalog_core.sql",
+    "src/modules/catalog/CatalogPage.tsx"
+  ],
+  "files_updated": [
+    "package.json",
+    "src-tauri/Cargo.toml",
+    "src-tauri/src/commands/bootstrap.rs",
+    "src-tauri/src/commands/data_center.rs",
+    "src-tauri/src/commands/mod.rs",
+    "src-tauri/src/core/db.rs",
+    "src-tauri/src/core/migrations.rs",
+    "src-tauri/src/core/mod.rs",
+    "src-tauri/src/core/patching.rs",
+    "src-tauri/src/core/seed.rs",
+    "src-tauri/src/domain/bootstrap.rs",
+    "src-tauri/src/domain/models.rs",
+    "src-tauri/src/lib.rs",
+    "src-tauri/tauri.conf.json",
+    "src/app/AppProvider.tsx",
+    "src/modules/business/BusinessPage.tsx",
+    "src/modules/dashboard/DashboardPage.tsx",
+    "src/modules/data-center/DataCenterPage.tsx",
+    "src/modules/settings/SettingsPage.tsx",
+    "src/modules/shell/AppShell.tsx",
+    "src/shared/api.ts",
+    "src/shared/types.ts",
+    "src/shared/utils.ts",
+    "src/styles.css"
+  ],
+  "files_deleted": [],
+  "post_apply_steps": [
+    "cd <target>",
+    "npm install",
+    "npm run validate:patch3",
+    "npm run tauri dev"
+  ]
+}

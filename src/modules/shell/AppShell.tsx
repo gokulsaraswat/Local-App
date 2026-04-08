@@ -3,6 +3,7 @@ import { useAppState } from "../../app/AppProvider";
 import type { NavPage } from "../../shared/types";
 import { classNames, formatModuleList } from "../../shared/utils";
 import { DashboardPage } from "../dashboard/DashboardPage";
+import { CatalogPage } from "../catalog/CatalogPage";
 import { BusinessPage } from "../business/BusinessPage";
 import { SettingsPage } from "../settings/SettingsPage";
 import { DataCenterPage } from "../data-center/DataCenterPage";
@@ -14,6 +15,11 @@ const navItems: Array<{ key: NavPage; label: string; description: string }> = [
     key: "dashboard",
     label: "Dashboard",
     description: "Local workspace summary"
+  },
+  {
+    key: "catalog",
+    label: "Catalog",
+    description: "Products, menu, services"
   },
   {
     key: "business",
@@ -83,7 +89,7 @@ export function AppShell() {
     <div className="app-shell">
       <aside className="sidebar">
         <div className="sidebar-brand">
-          <div className="brand-badge">P2</div>
+          <div className="brand-badge">P3</div>
           <div>
             <strong>Local Business Manager</strong>
             <div className="muted-text">
@@ -141,6 +147,14 @@ export function AppShell() {
                 {data.activeTaxProfile.taxLabel} · {data.activeTaxProfile.defaultRate}%
               </strong>
             </div>
+            <div>
+              <span>Catalog items</span>
+              <strong>{data.catalogSummary.activeItems}</strong>
+            </div>
+            <div>
+              <span>Low stock flags</span>
+              <strong>{data.catalogSummary.lowStockCandidates}</strong>
+            </div>
           </div>
           <div className="muted-text small-text">
             {switchStatus || activeWorkspace?.nextSaleSequence || "Sequence pending"}
@@ -149,8 +163,8 @@ export function AppShell() {
 
         <div className="sidebar-section-label">Business mode</div>
         <div className="sidebar-card">
-          <div className="sidebar-pill success">Multi-business ready</div>
-          <div className="sidebar-pill neutral">Settings profiles ready</div>
+          <div className="sidebar-pill success">Catalog core ready</div>
+          <div className="sidebar-pill neutral">Multi-business ready</div>
           <div className="sidebar-pill neutral">Patch registry ready</div>
           <div className="muted-text small-text">
             {formatModuleList(activeWorkspace?.activeModules ?? [])}
@@ -163,14 +177,15 @@ export function AppShell() {
           <div>
             <h1>{pageTitle}</h1>
             <p>
-              Patch 2 expands the foundation into a practical multi-business local
-              workspace.
+              Patch 3 adds local catalog structure for products, menu items, services,
+              barcodes, categories, and units without bringing in full POS or inventory
+              ledgers yet.
             </p>
           </div>
           <div className="workspace-header-meta">
             <span className="meta-chip">Business: {data.activeBusiness.code}</span>
             <span className="meta-chip">
-              Tax: {data.activeTaxProfile.taxLabel}
+              Items: {data.catalogSummary.activeItems}
             </span>
             <span className="meta-chip">Schema v{data.appInfo.schemaVersion}</span>
           </div>
@@ -180,6 +195,7 @@ export function AppShell() {
           {activePage === "dashboard" && (
             <DashboardPage onNavigate={setActivePage} />
           )}
+          {activePage === "catalog" && <CatalogPage />}
           {activePage === "business" && <BusinessPage />}
           {activePage === "settings" && <SettingsPage />}
           {activePage === "data-center" && <DataCenterPage />}
