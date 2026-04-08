@@ -1,0 +1,22 @@
+[package]
+name = "local-business-manager"
+version = "0.1.0"
+description = "Local-first business management desktop app foundation"
+authors = ["OpenAI"]
+edition = "2021"
+
+[lib]
+name = "local_business_manager"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2.0.0", features = [] }
+
+[dependencies]
+chrono = { version = "0.4.38", features = ["serde"] }
+rusqlite = { version = "0.32.1", features = ["bundled"] }
+serde = { version = "1.0.215", features = ["derive"] }
+serde_json = "1.0.133"
+sha2 = "0.10.8"
+tauri = { version = "2.0.0", features = [] }
+uuid = { version = "1.11.0", features = ["v4", "serde"] }

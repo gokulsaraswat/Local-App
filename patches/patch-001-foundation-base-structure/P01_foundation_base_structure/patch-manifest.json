@@ -1,0 +1,17 @@
+{
+  "patch_id": "P001_foundation_base_structure",
+  "patch_name": "Foundation Base Structure",
+  "base_version": "0.0.0",
+  "target_version": "0.1.0-foundation",
+  "description": "Initial local-first desktop app foundation with Tauri, React, SQLite, business profile/settings shell, backup/export foundations, and patch-ready architecture.",
+  "dependencies": [],
+  "safe_on_empty_project": true,
+  "migration_required": true,
+  "rollback_supported": true,
+  "files_root": "files",
+  "post_apply_steps": [
+    "cd <target>",
+    "npm install",
+    "npm run tauri dev"
+  ]
+}
